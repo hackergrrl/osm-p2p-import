@@ -1,6 +1,6 @@
 var osm2Obj = require('osm2json')
 var collect = require('collect-stream')
-var hex2dec = require('./hex2dec.js')
+var hex2dec = require('./lib/hex2dec.js')
 var randomBytes = require('randombytes')
 var hyperlog = require('hyperlog')
 var lexint = require('lexicographic-integer')
