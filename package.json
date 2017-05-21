@@ -13,9 +13,15 @@
     "test": "tape test/*.js",
     "lint": "standard"
   },
-  "keywords": [
-  ],
-  "dependencies": {},
+  "keywords": [],
+  "dependencies": {
+    "base-convertor": "^1.1.0",
+    "collect-stream": "^1.2.1",
+    "hyperlog": "^4.12.1",
+    "lexicographic-integer": "^1.1.0",
+    "osm2json": "^2.1.0",
+    "randombytes": "^2.0.3"
+  },
   "devDependencies": {
     "tape": "~4.6.2",
     "standard": "~10.0.0"
