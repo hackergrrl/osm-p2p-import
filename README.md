@@ -5,6 +5,37 @@
 This is useful if you have a very large OSM dataset that would otherwise be too
 slow to insert directly into `osm-p2p-db`.
 
+## How much faster?
+
+`smaller.xml`: 1.4mb
+- osm-p2p-server: 10.5s
+- osm-p2p-db-importer: 7.3s
+
+`6.xml`: 18mb
+- osm-p2p-server: 720+ seconds (stopped recording)
+- osm-p2p-db-importer: 73.3s
+
+XML parsing happens up-front and is held in memory, so a lot of the common time
+between both goes to that.
+
+**TODO** streaming XML parsing
+
+## How does it work?
+
+A fresh import is a special case that lets us make a key assumption:
+
+1. No historic data (no data in the import is an earlier revision of other data)
+
+There is a *lot* of cost in ensuring consistency across the layers of
+`osm-p2p-*`, which can be potentially skipped if we know we don't need to worry
+about inconsistent data coming in.
+
+This module skips multiple layers, accepting OSM XML data and generating LevelDB
+batch operations directly, without the `osm-p2p-db`, `hyperkv`, and `hyperlog`
+layers of processing in between. This isn't very stable in the long-term (since
+the things under the blankets of these modules may change), but for now it makes
+for some very quick data insertions into a fresh DB.
+
 ## Usage
 
 ```js
