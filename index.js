@@ -9,6 +9,7 @@ var messages = require('hyperlog/lib/messages')
 var encoder = require('hyperlog/lib/encode')
 var cuid = require('cuid')
 var level = require('level')
+var path = require('path')
 
 var ID = '!!id'
 var CHANGES = '!changes!'
@@ -20,7 +21,7 @@ module.exports = function (osmDir, xmlStream, done) {
   var seq = 1
 
   var id = cuid()
-  var db = level(osmDir)
+  var db = level(path.join(osmDir, 'log'))
   var batch = []
   var idToP2pId = {}
 

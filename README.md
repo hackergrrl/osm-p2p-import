@@ -44,8 +44,17 @@ var fs = require('fs')
 
 var xml = fs.createReadStream('./hawaii.xml')
 
-importer('/tmp/osm-p2p-ex', xml, function (err) {
-  console.log(err ? err : 'done!')
+var dbPath = '/tmp/osm-p2p-ex'
+
+importer(dbPath, xml, function (err) {
+  console.log(err ? err : 'import done!')
+
+  // OPTIONAL: wait for indexes to be generated
+  var osmdb = require('osm-p2p')
+  var osm = osmdb(dbPath)
+  osm.ready(function () {
+    console.log('indexes generated')
+  })
 })
 ```
 
