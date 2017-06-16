@@ -2,7 +2,7 @@
   "name": "osm-p2p-db-importer",
   "description": "super fast imports from OSM XML into a fresh osm-p2p-db",
   "author": "Stephen Whitmore <sww@eight.net>",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "repository": {
     "url": "git://github.com/noffle/osm-p2p-db-importer.git"
   },
