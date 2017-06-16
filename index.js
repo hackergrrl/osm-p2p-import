@@ -44,7 +44,10 @@ module.exports = function (osmDir, xmlStream, done) {
     // Convert into raw leveldb hyperlog format
     batch = batch.concat(kvBatch.reduce(kvToLevel, []))
 
-    db.batch(batch, done)
+    db.batch(batch, function (err) {
+      if (err) return done(err)
+      db.close(done)
+    })
   })
 
   function kvToLevel (batch, kvEntry) {
@@ -142,4 +145,3 @@ var toKey = function (link) {
 
 
 // {\"k\":\"2930144206448845073\",\"v\":{\"type\":\"node\",\"lon\":-75.31402823300216,\"lat\":-0.48280370256946364,\"changeset\":\"3229550849285059436\"}}"}
-
