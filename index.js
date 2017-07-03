@@ -10,6 +10,8 @@ var encoder = require('hyperlog/lib/encode')
 var cuid = require('cuid')
 var level = require('level')
 var path = require('path')
+var through = require('through2')
+var eos = require('end-of-stream')
 
 var ID = '!!id'
 var CHANGES = '!changes!'
@@ -25,30 +27,48 @@ module.exports = function (osmDir, xmlStream, done) {
   var batch = []
   var idToP2pId = {}
 
-  var r = xmlStream.pipe(osm2Obj({coerceIds: false}))
-  collect(r, function (err, changes) {
-    // TODO generate changeset + id
-    // ...
+  var pending = []
 
-    // Convert given IDs to new osm-p2p-db IDs
-    changes.forEach(function (change) {
-      idToP2pId[change.id] = hex2dec(randomBytes(8).toString('hex'))
-    })
+  var t = through.obj(write, flush)
+  var r = xmlStream
+    .pipe(osm2Obj({coerceIds: false}))
+    .pipe(t)
 
-    // Convert OSM data into hyperkv batch format
-    var kvBatch = changes.map(batchMap)
+  t.on('finish', function () {
+    done()
+  })
 
-    // insert new hyperlog id + insert
-    batch.push({type: 'put', key: ID, value: id})
+  // insert new hyperlog id + insert
+  batch.push({type: 'put', key: ID, value: id})
 
-    // Convert into raw leveldb hyperlog format
-    batch = batch.concat(kvBatch.reduce(kvToLevel, []))
+	function write (change, enc, next) {
+    if (change.type !== 'node' && change.type !== 'way' && change.type !== 'relation') return next()
+
+    idToP2pId[change.id] = hex2dec(randomBytes(8).toString('hex'))
+    if (!isSatisfiable(change)) {
+      pending.push(change)
+      return next()
+    }
+
+    writeChange(change)
+    next()
+  }
+
+  function flush (fin) {
+    pending.forEach(writeChange)
 
     db.batch(batch, function (err) {
-      if (err) return done(err)
-      db.close(done)
+      if (err) return fin(err)
+      db.close(fin)
     })
-  })
+  }
+
+  function writeChange (change) {
+    var kv = batchMap(change)
+
+    // Convert into raw leveldb hyperlog format
+    kvToLevel(batch, kv)
+  }
 
   function kvToLevel (batch, kvEntry) {
     // TODO build base node object
@@ -74,6 +94,19 @@ module.exports = function (osmDir, xmlStream, done) {
     batch.push({type: 'put', key: LOGS + id + '!' + lexint.pack(node.seq, 'hex'), value: messages.Entry.encode(entry)})
 
     return batch
+  }
+
+  function isSatisfiable (change) {
+    var res = true
+
+    ;(change.nodes || []).forEach(function (id, idx) {
+      if (!idToP2pId[id]) res = false
+    })
+    ;(change.members || []).forEach(function (ref, idx) {
+      if (!idToP2pId[ref.ref]) res = false
+    })
+
+    return res
   }
 
   /**
@@ -142,6 +175,3 @@ function constructInitialNode (doc, opts) {
 var toKey = function (link) {
   return typeof link !== 'string' ? link.key : link
 }
-
-
-// {\"k\":\"2930144206448845073\",\"v\":{\"type\":\"node\",\"lon\":-75.31402823300216,\"lat\":-0.48280370256946364,\"changeset\":\"3229550849285059436\"}}"}
