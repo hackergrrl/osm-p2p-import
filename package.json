@@ -6,6 +6,9 @@
   "repository": {
     "url": "git://github.com/noffle/osm-p2p-db-importer.git"
   },
+  "bin": {
+    "osm-p2p-db-importer": "bin/cmd.js"
+  },
   "homepage": "https://github.com/noffle/osm-p2p-db-importer",
   "bugs": "https://github.com/noffle/osm-p2p-db-importer/issues",
   "main": "index.js",
@@ -22,12 +25,12 @@
     "hyperlog": "^4.12.1",
     "level": "^1.6.0",
     "lexicographic-integer": "^1.1.0",
+    "mkdirp": "^0.5.1",
     "osm2json": "^2.1.0",
     "randombytes": "^2.0.3",
     "through2": "^2.0.3"
   },
   "devDependencies": {
-    "mkdirp": "^0.5.1",
     "rimraf": "^2.6.1",
     "standard": "~10.0.0",
     "tape": "~4.6.2"
