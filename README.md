@@ -15,11 +15,6 @@ slow to insert directly into `osm-p2p-db`.
 - osm-p2p-server: 720+ seconds (stopped recording)
 - osm-p2p-db-importer: 73.3s
 
-XML parsing happens up-front and is held in memory, so a lot of the common time
-between both goes to that.
-
-**TODO** streaming XML parsing
-
 ## How does it work?
 
 A fresh import is a special case that lets us make a key assumption:
@@ -75,6 +70,12 @@ var importer = require('osm-p2p-db-importer')
 - `osmDir`: path to a directory where the `osm-p2p-db` will be located.
 - `xmlStream`: a readable stream of OSM XML data.
 - `done`: a callback function, receiving an error `err` or `null`.
+
+### importer.toLevel(db, xmlStream, done)
+
+Like the above, except operating on a user-specified LevelUP instance, `db`.
+This is useful if you aren't using a filesystem-backed LevelDOWN as your
+back-end.
 
 ## XML Formatting
 

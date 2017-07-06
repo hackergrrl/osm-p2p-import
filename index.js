@@ -8,7 +8,6 @@ var hash = require('hyperlog/lib/hash')
 var messages = require('hyperlog/lib/messages')
 var encoder = require('hyperlog/lib/encode')
 var cuid = require('cuid')
-var level = require('level')
 var path = require('path')
 var through = require('through2')
 var eos = require('end-of-stream')
@@ -20,10 +19,17 @@ var HEADS = '!heads!'
 var LOGS = '!logs!'
 
 module.exports = function (osmDir, xmlStream, done) {
+  var level = require('level')
+  var db = level(path.join(osmDir, 'log'))
+  importToLevel(db, xmlStream, done)
+}
+
+module.exports.toLevel = importToLevel
+
+function importToLevel (db, xmlStream, done) {
   var seq = 1
 
   var id = cuid()
-  var db = level(path.join(osmDir, 'log'))
   var batch = []
   var idToP2pId = {}
 
