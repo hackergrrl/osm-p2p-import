@@ -2,7 +2,6 @@ var osm2Obj = require('osm2json')
 var collect = require('collect-stream')
 var hex2dec = require('./lib/hex2dec.js')
 var randomBytes = require('randombytes')
-var hyperlog = require('hyperlog')
 var lexint = require('lexicographic-integer')
 var hash = require('hyperlog/lib/hash')
 var messages = require('hyperlog/lib/messages')
@@ -21,12 +20,12 @@ var LOGS = '!logs!'
 module.exports = function (osmDir, xmlStream, done) {
   var level = require('level')
   var db = level(path.join(osmDir, 'log'))
-  importToLevel(db, xmlStream, done)
+  importToLevel(db, xmlStream, done, true)
 }
 
 module.exports.toLevel = importToLevel
 
-function importToLevel (db, xmlStream, done) {
+function importToLevel (db, xmlStream, done, closeAfterUse) {
   var seq = 1
 
   var id = cuid()
@@ -65,10 +64,13 @@ function importToLevel (db, xmlStream, done) {
 
     db.batch(batch, function (err) {
       if (err) return fin(err)
-      db.close(function (err) {
+      else if (closeAfterUse) db.close(drain)
+      else drain()
+
+      function drain (err) {
         t.resume()  // drain stream to induce 'end' event
         fin(err)
-      })
+      }
     })
   }
 
