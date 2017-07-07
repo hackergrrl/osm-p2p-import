@@ -40,7 +40,7 @@ function importToLevel (db, xmlStream, done) {
     .pipe(osm2Obj({coerceIds: false}))
     .pipe(t)
 
-  t.on('finish', function () {
+  t.on('end', function () {
     done()
   })
 
@@ -65,7 +65,10 @@ function importToLevel (db, xmlStream, done) {
 
     db.batch(batch, function (err) {
       if (err) return fin(err)
-      db.close(fin)
+      db.close(function (err) {
+        t.resume()  // drain stream to induce 'end' event
+        fin(err)
+      })
     })
   }
 
