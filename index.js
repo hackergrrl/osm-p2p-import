@@ -26,38 +26,61 @@ module.exports = function (osmDir, xmlStream, done) {
   var idToP2pId = {}
 
   var r = xmlStream.pipe(osm2Obj({coerceIds: false}))
+  console.time('XML')
   collect(r, function (err, changes) {
+    console.timeEnd('XML')
     // TODO generate changeset + id
     // ...
 
     // Convert given IDs to new osm-p2p-db IDs
+    console.time('Conversion 1')
     changes.forEach(function (change) {
-      idToP2pId[change.id] = hex2dec(randomBytes(8).toString('hex'))
+      // idToP2pId[change.id] = hex2dec(randomBytes(8).toString('hex'))
+      idToP2pId[change.id] = parseInt(Math.random().toString().substring(2)).toString(16)
     })
+    console.timeEnd('Conversion 1')
 
     // Convert OSM data into hyperkv batch format
+    console.time('Conversion 2')
     var kvBatch = changes.map(batchMap)
+    console.timeEnd('Conversion 2')
 
     // insert new hyperlog id + insert
     batch.push({type: 'put', key: ID, value: id})
 
     // Convert into raw leveldb hyperlog format
-    batch = batch.concat(kvBatch.reduce(kvToLevel, []))
+    console.time('batch prep')
+    for (var i=0; i < kvBatch.length; i++) {
+      kvToLevel(batch, kvBatch[i])
+    }
+    console.timeEnd('batch prep')
 
-    db.batch(batch, function (err) {
-      if (err) return done(err)
-      db.close(done)
-    })
+    // Batched batches
+    ;(function doBatch () {
+      console.log('1', batch.length)
+      if (batch.length <= 0) {
+        return db.close(done)
+      }
+
+      var ops = batch.splice(0, 10000)
+      console.log('2', ops.length)
+      console.time('batch op')
+      db.batch(ops, function (err) {
+        console.timeEnd('batch op')
+        if (err) return done(err)
+        doBatch()
+      })
+    })()
   })
 
   function kvToLevel (batch, kvEntry) {
-    // TODO build base node object
+    // build base node object
     var node = constructInitialNode(kvEntry, {
       log: id
     })
     node.key = hash([], node.value)
-    node.change = seq // TODO global change #
-    node.seq = seq  // TODO global seq #
+    node.change = seq // global change #
+    node.seq = seq  // global seq #
     seq++
 
     var entry = {
