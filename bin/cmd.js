@@ -2,8 +2,9 @@
 
 var fs = require('fs')
 var path = require('path')
-var args = require('minimist')(process.argv, {boolean: ['s','slow']})
+var args = require('minimist')(process.argv)
 var mkdirp = require('mkdirp')
+var OsmP2P = require('osm-p2p')
 var importer = require('../')
 
 if (args.h || args.help) {
@@ -22,9 +23,8 @@ else if (args._.length === 3) xml = process.stdin
 else return exit(0)
 
 var opts = {}
-opts.slow = args.s || args.slow || false
 
-importer(args._[2], xml, opts, function (err) {
+importer(OsmP2P(args._[2]), xml, opts, function (err) {
   if (err) throw err
 })
 
