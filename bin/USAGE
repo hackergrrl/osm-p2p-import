@@ -1,7 +1,7 @@
-USAGE: osm-p2p-db-importer [--slow] DBDIR [XMLFILE]
+USAGE: osm-p2p-import DBDIR [XMLFILE]
 
-  Import OSM XML into an osm-p2p-db located at DBDIR. XMLFILE is a file
-  containing OSM XML. If not specified, OSM XML is read from standard input.
+  Import OSM XML into an osm-p2p-db located at DBDIR.
+  
+  XMLFILE is a file containing OSM XML. If not specified, OSM XML is read from
+  standard input.
 
-  --slow, -s: skip fragile optimizations; import using the normal osm-p2p-db
-              process.
