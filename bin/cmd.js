@@ -10,8 +10,6 @@ if (args.h || args.help) {
   return exit(0)
 }
 
-console.log(args._)
-
 if (args._.length < 3) {
   return exit(0)
 }
