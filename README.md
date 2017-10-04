@@ -3,7 +3,16 @@
 > Node.JS module *and* command line utility for importing OSM XML into an
 > [osm-p2p-db](https://github.com/digidem/osm-p2p-db).
 
-## Usage
+## CLI Usage
+
+```
+USAGE: osm-p2p-import DBDIR [XMLFILE]
+
+  Import OSM XML into an osm-p2p-db located at DBDIR. XMLFILE is a file
+  containing OSM XML. If not specified, OSM XML is read from standard input.
+```
+
+## Module Usage
 
 ```js
 var importer = require('osm-p2p-import')
@@ -45,16 +54,6 @@ var importer = require('osm-p2p-import')
 - `xmlStream`: a readable stream of OSM XML data.
 - `opts`: options object. Currently accepts `slow: true|false`.
 - `done`: a callback function, receiving an error `err` or `null`.
-
-## CLI Usage
-
-```
-USAGE: osm-p2p-import DBDIR [XMLFILE]
-
-  Import OSM XML into an osm-p2p-db located at DBDIR. XMLFILE is a file
-  containing OSM XML. If not specified, OSM XML is read from standard input.
-```
-
 
 ## XML Formatting
 
