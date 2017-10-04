@@ -1,16 +1,16 @@
 {
-  "name": "osm-p2p-db-importer",
+  "name": "osm-p2p-importer",
   "description": "super fast imports from OSM XML into a fresh osm-p2p-db",
   "author": "Stephen Whitmore <sww@eight.net>",
   "version": "2.0.4",
   "repository": {
-    "url": "git://github.com/noffle/osm-p2p-db-importer.git"
+    "url": "git://github.com/noffle/osm-p2p-importer.git"
   },
   "bin": {
-    "osm-p2p-db-importer": "bin/cmd.js"
+    "osm-p2p-import": "bin/cmd.js"
   },
-  "homepage": "https://github.com/noffle/osm-p2p-db-importer",
-  "bugs": "https://github.com/noffle/osm-p2p-db-importer/issues",
+  "homepage": "https://github.com/noffle/osm-p2p-importer",
+  "bugs": "https://github.com/noffle/osm-p2p-importer/issues",
   "main": "index.js",
   "scripts": {
     "test": "tape test/*.js",
