@@ -65,10 +65,11 @@ done!
 var importer = require('osm-p2p-db-importer')
 ```
 
-### importer(osmDir, xmlStream, done)
+### importer(osmDir, xmlStream, opts, done)
 
 - `osmDir`: path to a directory where the `osm-p2p-db` will be located.
 - `xmlStream`: a readable stream of OSM XML data.
+- `opts`: options object. Currently accepts `slow: true|false`.
 - `done`: a callback function, receiving an error `err` or `null`.
 
 ### importer.toLevel(db, xmlStream, done)
@@ -76,6 +77,19 @@ var importer = require('osm-p2p-db-importer')
 Like the above, except operating on a user-specified LevelUP instance, `db`.
 This is useful if you aren't using a filesystem-backed LevelDOWN as your
 back-end.
+
+## CLI Usage
+
+```
+USAGE: osm-p2p-db-importer [--slow] DBDIR [XMLFILE]
+
+  Import OSM XML into an osm-p2p-db located at DBDIR. XMLFILE is a file
+  containing OSM XML. If not specified, OSM XML is read from standard input.
+
+  --slow, -s: skip fragile optimizations; import using the normal osm-p2p-db
+              process.
+```
+
 
 ## XML Formatting
 
@@ -91,8 +105,14 @@ create one first, an ensure your XML has that changeset set.
 
 With [npm](https://npmjs.org/) installed, run
 
+### As a Library
 ```
 $ npm install osm-p2p-db-importer
+```
+
+### As a Command Line Utility
+```
+$ npm install --global osm-p2p-db-importer
 ```
 
 ## License
