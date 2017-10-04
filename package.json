@@ -26,6 +26,7 @@
     "level": "^1.6.0",
     "lexicographic-integer": "^1.1.0",
     "mkdirp": "^0.5.1",
+    "osm-p2p": "^2.0.0",
     "osm2json": "^2.1.0",
     "randombytes": "^2.0.3",
     "through2": "^2.0.3"

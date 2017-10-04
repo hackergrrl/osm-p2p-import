@@ -17,10 +17,16 @@ var NODES = '!nodes!'
 var HEADS = '!heads!'
 var LOGS = '!logs!'
 
-module.exports = function (osmDir, xmlStream, done) {
-  var level = require('level')
-  var db = level(path.join(osmDir, 'log'))
-  importToLevel(db, xmlStream, done, true)
+module.exports = function (osmDir, xmlStream, opts, done) {
+  if (opts.slow) {
+    var osmP2p = require('osm-p2p')
+    var osm = osmP2p(osmDir)
+    importNormal(osm, xmlStream, done)
+  } else {
+    var level = require('level')
+    var db = level(path.join(osmDir, 'log'))
+    importToLevel(db, xmlStream, done, true)
+  }
 }
 
 module.exports.toLevel = importToLevel
@@ -185,4 +191,64 @@ function constructInitialNode (doc, opts) {
 // Consumes either a string or a hyperlog node and returns its key.
 var toKey = function (link) {
   return typeof link !== 'string' ? link.key : link
+}
+
+function importNormal (osm, xml, cb) {
+  var t = through.obj(write, flush)
+  var r = xml
+    .pipe(osm2Obj({coerceIds: false}))
+    .pipe(t)
+
+  t.once('end', cb)
+  
+  var ids = {}
+
+  function replaceIds (elm) {
+    ;(elm.nodes || []).forEach(function (id, idx) {
+      console.log('mapping', elm.nodes[idx], 'to', ids[id])
+      if (!elm.refs) elm.refs = []
+      elm.refs.push(ids[id])
+    })
+    delete elm.nodes
+    ;(elm.members || []).forEach(function (member, idx) {
+      var ref = member.ref
+      console.log('member', ref, idx)
+      console.log('mapping', elm.members[idx].ref, 'to', ids[ref])
+      if (!ids[ref]) elm.members.splice(idx, 1)
+      else elm.members[idx].ref = ids[ref]
+    })
+    return elm
+  }
+
+	function write (change, enc, next) {
+    console.log(change.type)
+    change = replaceIds(change)
+    var cid = change.id
+    delete change.id
+    // console.log('writing', change)
+    osm.create(change, function (err, id, node) {
+      ids[cid] = id
+      console.log('ids['+cid+'] =',id)
+      console.log('wrote', node.value.v)
+      if (err) throw err
+      next()
+    })
+  }
+
+  function flush (fin) {
+    return fin()
+    
+    pending.forEach(writeChange)
+
+    db.batch(batch, function (err) {
+      if (err) return fin(err)
+      else if (closeAfterUse) db.close(drain)
+      else drain()
+
+      function drain (err) {
+        t.resume()  // drain stream to induce 'end' event
+        fin(err)
+      }
+    })
+  }
 }

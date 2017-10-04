@@ -2,7 +2,7 @@
 
 var fs = require('fs')
 var path = require('path')
-var args = require('minimist')(process.argv)
+var args = require('minimist')(process.argv, {boolean: ['s','slow']})
 var mkdirp = require('mkdirp')
 var importer = require('../')
 
@@ -10,17 +10,24 @@ if (args.h || args.help) {
   return exit(0)
 }
 
-if (args._.length !== 4) {
+console.log(args._)
+
+if (args._.length < 3) {
   return exit(0)
 }
 
-mkdirp.sync(args._[3])
+mkdirp.sync(args._[2])
 
-var xml = fs.createReadStream(args._[2])
+var xml
+if (args._.length === 4) xml = fs.createReadStream(args._[3])
+else if (args._.length === 3) xml = process.stdin
+else return exit(0)
 
-importer(args._[3], xml, function (err) {
+var opts = {}
+opts.slow = args.s || args.slow || false
+
+importer(args._[2], xml, opts, function (err) {
   if (err) throw err
-  console.log('done')
 })
 
 function exit (code) {
