@@ -210,15 +210,12 @@ function importNormal (osm, xml, cb) {
 
   function replaceIds (elm) {
     ;(elm.nodes || []).forEach(function (id, idx) {
-      console.log('mapping', elm.nodes[idx], 'to', ids[id])
       if (!elm.refs) elm.refs = []
       elm.refs.push(ids[id])
     })
     delete elm.nodes
     ;(elm.members || []).forEach(function (member, idx) {
       var ref = member.ref
-      console.log('member', ref, idx)
-      console.log('mapping', elm.members[idx].ref, 'to', ids[ref])
       if (!ids[ref]) elm.members.splice(idx, 1)
       else elm.members[idx].ref = ids[ref]
     })
@@ -226,15 +223,11 @@ function importNormal (osm, xml, cb) {
   }
 
 	function write (change, enc, next) {
-    console.log(change.type)
     change = replaceIds(change)
     var cid = change.id
     delete change.id
-    // console.log('writing', change)
     osm.create(change, function (err, id, node) {
       ids[cid] = id
-      console.log('ids['+cid+'] =',id)
-      console.log('wrote', node.value.v)
       if (err) throw err
       next()
     })
