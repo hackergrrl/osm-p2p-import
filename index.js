@@ -18,6 +18,11 @@ var HEADS = '!heads!'
 var LOGS = '!logs!'
 
 module.exports = function (osmDir, xmlStream, opts, done) {
+  if (opts && !done && typeof opts === 'function') {
+    done = opts
+    opts = {}
+  }
+
   if (opts.slow) {
     var osmP2p = require('osm-p2p')
     var osm = osmP2p(osmDir)
