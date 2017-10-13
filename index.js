@@ -14,7 +14,7 @@ module.exports = function (osm, xml, opts, cb) {
     .pipe(osm2Obj({coerceIds: false}))
     .pipe(t)
 
-  t.once('finish', cb)
+  t.once('end', cb)
   
   var ids = {}
 
@@ -59,32 +59,35 @@ module.exports = function (osm, xml, opts, cb) {
   }
 
 	function write (change, enc, next) {
-    if (hasDanglingRefs(change)) {
-      pending.push(change)
-      return next()
-    }
-
     processChange(change, next)
   }
 
-  function flush (cb) {
+  function flush (fin) {
+    var self = this
     next(null)
     function next (err) {
-      if (err) return cb(err)
-      if (pending.length === 0) return cb()
-      var change = pending.shift()
-      processChange(change, next)
+      console.log('p', pending.length)
+      if (err) return fin(err)
+      else if (pending.length === 0) {
+        self.resume()
+        return fin()
+      }
+      else processChange(pending.shift(), next)
     }
   }
 
   function processChange (change, cb) {
+    if (hasDanglingRefs(change)) {
+      pending.push(change)
+      return process.nextTick(cb)
+    }
+
     change = replaceIds(change)
     var cid = change.id
     delete change.id
     osm.create(change, function (err, id, node) {
       ids[cid] = id
-      if (err) throw err
-      cb()
+      cb(err)
     })
   }
 }
