@@ -13,3 +13,20 @@ test('smaller.xml', function (t) {
     t.end()
   })
 })
+
+test('ways before nodes', function (t) {
+  var xml = fs.createReadStream('./test/ways_first.xml')
+
+  var osm = OsmMem()
+
+  importer(osm, xml, function (err) {
+    t.error(err)
+    osm.ready(function () {
+      osm.query([[-85,85],[-85,85]], function (err, res) {
+        t.error(err)
+        t.equal(5, res.length)
+        t.end()
+      })
+    })
+  })
+})

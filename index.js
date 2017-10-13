@@ -7,7 +7,9 @@ module.exports = function (osm, xml, opts, cb) {
     opts = {}
   }
 
-  var t = through.obj(write)
+  var pending = []
+
+  var t = through.obj(write, flush)
   var r = xml
     .pipe(osm2Obj({coerceIds: false}))
     .pipe(t)
@@ -15,6 +17,22 @@ module.exports = function (osm, xml, opts, cb) {
   t.once('finish', cb)
   
   var ids = {}
+
+  function hasDanglingRefs (elm) {
+    if (elm.type === 'way') {
+      return elm.nodes.filter(danglingNodeRef).length === 0
+      function danglingNodeRef (ref) {
+        return !!ids[ref]
+      }
+    }
+    else if (elm.type === 'relation') {
+      return elm.members.filter(danglingMemberRef).length === 0
+      function danglingMemberRef (member) {
+        return !!ids[member.ref]
+      }
+    }
+    else return false
+  }
 
   function replaceIds (elm) {
     if (elm.nodes) {
@@ -41,15 +59,32 @@ module.exports = function (osm, xml, opts, cb) {
   }
 
 	function write (change, enc, next) {
+    if (hasDanglingRefs(change)) {
+      pending.push(change)
+      return next()
+    }
+
+    processChange(change, next)
+  }
+
+  function flush (cb) {
+    next(null)
+    function next (err) {
+      if (err) return cb(err)
+      if (pending.length === 0) return cb()
+      var change = pending.shift()
+      processChange(change, next)
+    }
+  }
+
+  function processChange (change, cb) {
     change = replaceIds(change)
     var cid = change.id
     delete change.id
-    // console.log('elm', change)
     osm.create(change, function (err, id, node) {
       ids[cid] = id
-      // console.log('wrote', node.key)
       if (err) throw err
-      next()
+      cb()
     })
   }
 }
